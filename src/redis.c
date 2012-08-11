@@ -1745,6 +1745,7 @@ void version() {
 
 void usage() {
     fprintf(stderr,"Usage: ./redis-server [/path/to/redis.conf]\n");
+    fprintf(stderr,"       ./redis-server --port <port number> [/path/to/redis.conf]\n");
     fprintf(stderr,"       ./redis-server - (read config from stdin)\n");
     fprintf(stderr,"       ./redis-server --test-memory <megabytes>\n\n");
     exit(1);
@@ -1772,7 +1773,17 @@ int main(int argc, char **argv) {
         if (strcmp(argv[1], "--help") == 0) usage();
         resetServerSaveParams();
         loadServerConfig(argv[1]);
-    } else if ((argc > 2)) {
+    } else if ((argc == 4)) {
+        if (strcmp(argv[1], "--port") == 0) {
+            resetServerSaveParams();
+            loadServerConfig(argv[3]);
+            server.port = atoi(argv[2]);
+            if (server.port < 0 || server.port > 65535) {
+                fprintf(stderr, "Invalid port: %d\n", server.port);
+                exit(1);
+            }
+        }
+    } else if (argc > 2) {
         usage();
     } else {
         redisLog(REDIS_WARNING,"Warning: no config file specified, using the default config. In order to specify a config file use 'redis-server /path/to/redis.conf'");
